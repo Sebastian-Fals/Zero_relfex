@@ -1,0 +1,2 @@
+enemigo_patron_circular
+enemigo_patron_espiral

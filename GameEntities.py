@@ -111,16 +111,24 @@ class Enemies(GameEntity):
             self.bullet_interval = 0.3
             self.bullet_vertices = 10
             self.suma_del_angulo = 360/self.bullet_vertices
+        if self.enemy_id == "enemigo_patron_espiral":
+            #Se configuran las opciones iniciales del enemigo
+            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (40, 40))
+            self.rect = self.image.get_rect()
+            self.rect.center = self.position
+            self.bullet_interval = 0.3
+            self.bullet_vertices = 3
+            self.suma_del_angulo = 360/self.bullet_vertices
 
     def update(self, objects):
         #Esta condicional depende del tipo de enemigos que se genera
-        if self.enemy_id == "enemigo_patron_circular":
-            now = tm.time()
-            if now - self.ultimo_disparo > self.bullet_interval:
-                # Disparar balas en un hilo separado
-                shoot_thread = Thread(target=self.shoot, args=(objects,))
-                shoot_thread.start()
-                self.ultimo_disparo = now
+        now = tm.time()
+        if now - self.ultimo_disparo > self.bullet_interval:
+            # Disparar balas en un hilo separado
+            shoot_thread = Thread(target=self.shoot, args=(objects,))
+            shoot_thread.start()
+            self.ultimo_disparo = now
 
         #Se destruye el enemigo
         if self.vida == 0:
@@ -130,8 +138,18 @@ class Enemies(GameEntity):
     def shoot(self, objects):
         if self.enemy_id == "enemigo_patron_circular":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite, 10, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[1], 5, self.target))
                 self.angulo_actual += self.suma_del_angulo
+
+            # Agregar las balas a la lista principal fuera del hilo
+            while not self.shoot_queue.empty():
+                objects.add(self.shoot_queue.get())
+        if self.enemy_id == "enemigo_patron_espiral":
+            for _ in range(self.bullet_vertices):
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[2], 5, self.target))
+                self.angulo_actual += self.suma_del_angulo
+
+            self.angulo_actual += 20
 
             # Agregar las balas a la lista principal fuera del hilo
             while not self.shoot_queue.empty():

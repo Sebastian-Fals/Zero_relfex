@@ -1,5 +1,7 @@
+import time as tm
 from pygame import *
 from random import *
+from threading import *
 from GameEntities import Enemies
 
 class SpawnPoint():
@@ -21,27 +23,49 @@ class SpawnPoint():
         
 
 class EnemyGenerator():
-    def __init__(self, group,  spawnPoints, enemyCount, enemies_ID, bulletSprite):
-        self.spawnPionts = spawnPoints
+    def __init__(self, group,  spawnPoints, enemyCount, enemy_IDs, bulletSprite, difficulty):
+        self.spawnPoints = spawnPoints
         self.enemyCount = enemyCount
-        self.enemies_ID = enemies_ID
+        self.enemy_IDs = enemy_IDs
         self.bulletSprite = bulletSprite
         self.group = group
+        self.difficulty = difficulty
+        self.lock = Lock()
+        self.has_spawned = False  # Bandera para rastrear si se ha ejecutado el hilo
+        self.enemies_generated = 0  # Contador de enemigos generados
+
     def update(self):
-        pass
+        any_spawn_points_occupied = all(spawn_point.canSpawn for spawn_point in self.spawnPoints)
+        if any_spawn_points_occupied:
+            self.setDifficulty()
+            self.enemies_generated = 0
+            # Utilizar threading para generar enemigos sin bloquear el hilo principal
+            enemy_thread = Thread(target=self.generateEnemies)
+            enemy_thread.start()
 
-    def generateEnemy(self):
-        #Verifica si todos los spawnPoints están ocupados
-        all_spawn_points_occupied = all(not spawn_point.canSpawn for spawn_point in self.spawnPionts)
-        if all_spawn_points_occupied:
-            print("Todos los puntos de aparición están ocupados. No se puede generar un enemigo.")
-            return
+    def generateEnemies(self):
+        with self.lock:
+            while self.enemies_generated < self.enemyCount:
+                for position in self.spawnPoints:
+                    position.update(self.group)
+                # Verifica si todos los spawnPoints están ocupados
+                all_spawn_points_occupied = all(not spawn_point.canSpawn for spawn_point in self.spawnPoints)
+                if all_spawn_points_occupied:
+                    return
 
-        randomPosition = randint(0, (len(self.spawnPionts) - 1))
-        print(randomPosition)
-        while self.spawnPionts[randomPosition].canSpawn == False:
-            randomPosition = randint(0, (len(self.spawnPionts) - 1))
-        if self.spawnPionts[randomPosition].canSpawn == True:
-            self.group.add(Enemies(image.load("Assets/circular_enemy.png").convert_alpha(), self.bulletSprite, self.spawnPionts[randomPosition].position, (40, 40), 10, "enemigo_patron_circular"))
-            print("Se genero un enemigo")
-            print(randomPosition)
+                randomPosition = randint(0, (len(self.spawnPoints) - 1))
+                randomID = randint(0, (len(self.enemy_IDs) - 1))
+                while self.spawnPoints[randomPosition].canSpawn == False:
+                    randomPosition = randint(0, (len(self.spawnPoints) - 1))
+                if self.spawnPoints[randomPosition].canSpawn == True:
+                    self.group.add(Enemies(image.load("Assets/circular_enemy.png").convert_alpha(), self.bulletSprite, self.spawnPoints[randomPosition].position, (40, 40), 10, self.enemy_IDs[randomID]))
+                tm.sleep(0.5)
+                self.enemies_generated += 1
+
+    def setDifficulty(self):
+        if self.difficulty == "easy":
+            self.enemyCount = randint(1, 3)
+        if self.difficulty == "medium":
+            self.enemyCount = randint(2, 5)
+        if self.difficulty == "hard":
+            self.enemyCount = randint(4, 8)

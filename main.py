@@ -32,6 +32,11 @@ playerSheet = image.load("Assets/SpaceShip_sheet.png").convert_alpha()
 bulletsSheet = image.load("Assets/Bullets_sheet.png").convert_alpha()
 #----------------------------
 
+#Se guardan todas las balas en un array
+bullet_array = [get_image(bulletsSheet, 0, 24, 24, BLACK),
+                get_image(bulletsSheet, 1, 24, 24, BLACK),
+                get_image(bulletsSheet, 2, 24, 24, BLACK)]
+
 #Posibles posiciones de un enemigo
 enemyPos = [SpawnPoint((responsiveSizeAndPosition(screen_size, 0, 25), responsiveSizeAndPosition(screen_size, 1, 10))), 
             SpawnPoint((responsiveSizeAndPosition(screen_size, 0, 75), responsiveSizeAndPosition(screen_size, 1, 10))),
@@ -42,11 +47,12 @@ enemyPos = [SpawnPoint((responsiveSizeAndPosition(screen_size, 0, 25), responsiv
             SpawnPoint((responsiveSizeAndPosition(screen_size, 0, 10), responsiveSizeAndPosition(screen_size, 1, 50))),
             SpawnPoint((responsiveSizeAndPosition(screen_size, 0, 90), responsiveSizeAndPosition(screen_size, 1, 50)))]
 
-enemyID = ["enemigo_patron_circular"]
+enemyID = ["enemigo_patron_circular", 
+           "enemigo_patron_espiral"]
 
 #Objetos
-player = Player(get_image(playerSheet, 0, 52, 52, BLACK), get_image(bulletsSheet, 0, 24, 24, BLACK), (responsiveSizeAndPosition(screen_size, 0, 50), responsiveSizeAndPosition(screen_size, 1, 90)), (responsiveSizeAndPosition(screen_size, 0, 3), responsiveSizeAndPosition(screen_size, 0, 3)), 10)
-enemyGenerator = EnemyGenerator(enemies, enemyPos, 1, enemyID, get_image(bulletsSheet, 1, 24, 24, BLACK))
+player = Player(get_image(playerSheet, 0, 52, 52, BLACK), bullet_array[0], (responsiveSizeAndPosition(screen_size, 0, 50), responsiveSizeAndPosition(screen_size, 1, 90)), (responsiveSizeAndPosition(screen_size, 0, 3), responsiveSizeAndPosition(screen_size, 0, 3)), 10)
+enemyGenerator = EnemyGenerator(enemies, enemyPos, 0, enemyID, bullet_array, "easy")
 #----------------------------
 
 last_time = tm.time()#Esta variabe sirve para calcular el deltaTime
@@ -104,9 +110,10 @@ while running:
 
         #Update de los objetos de la escena
     for position in enemyPos:
-        position.update(enemies)            
+        position.update(enemies)           
     player.update(dt, mouse_pos, screen_size)
     enemies.update(bullets)
+    enemyGenerator.update()
     bullets.update(screen_rect, dt)
     #-----------------
 
