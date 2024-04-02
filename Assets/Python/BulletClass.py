@@ -2,10 +2,10 @@ from pygame import *
 from math import *
 
 class Bullet(sprite.Sprite):
-    def __init__(self, location, angle, sprite, speed, bullet_target):
+    def __init__(self, location, angle, sprite, speed, bullet_target, size):
         super().__init__()
         self.image = sprite
-        self.image = transform.scale(self.image, (20, 20))
+        self.image = transform.scale(self.image, size)
         #Rota la bala hacia donde está viendo el player
         self.angle = radians(angle - 90)
         self.image = transform.rotate(self.image, -angle)

@@ -4,9 +4,10 @@ from math import *
 from threading import *
 from queue import *
 from BulletClass import Bullet
+from funciones import responsiveSizeAndPosition
 
 class GameEntity(sprite.Sprite):
-    def __init__(self, sprite, bullet_sprite, position, size, vida):
+    def __init__(self, sprite, bullet_sprite, position, size, vida, screen_size):
         super().__init__()
         self.originalSprite = transform.scale(sprite, size)
         self.image = self.originalSprite
@@ -16,22 +17,25 @@ class GameEntity(sprite.Sprite):
         self.rect.center = (self.position[0], self.position[1])
         self.vida = vida
         self.bullet_sprite = bullet_sprite
-        self.screen_size = 0
+        self.screen_size = screen_size
         
     def take_damage(self, amount):
         self.vida -= amount
+    
+    def resize(self, sizeX, sizeY):
+        self.image = transform.scale(self.image, (sizeX, sizeY))
 
 class Player(GameEntity):
-    def __init__(self, sprite, bullet_sprite, position, size, vida):
-        super().__init__(sprite, bullet_sprite, position, size, vida)
+    def __init__(self, sprite, bullet_sprite, position, size, vida, screen_size):
+        super().__init__(sprite, bullet_sprite, position, size, vida, screen_size)
         self.velocityX = 0
         self.velocityY = 0
         self.angle = 0
         self.mouse_pos = 0
         self.target = "enemies" #Define a quien va a dañar la bala que se spawnea
-        self.vida = 1
+        self.vida = vida
         self.isDead = False
-        self.shootSound = mixer.Sound("Assets/laser_beam.mp3")
+        self.shootSound = mixer.Sound("Assets/SFX/laser_beam.mp3")
         self.shootSound.set_volume(0.3)
 
     def update(self, deltaTime,  mouse_pos, screen_size):
@@ -44,13 +48,13 @@ class Player(GameEntity):
 
         #Movimiento con WASD
         if teclas[K_w]:
-            self.velocityY = -6
+            self.velocityY = -responsiveSizeAndPosition(self.screen_size, 0, 0.46875)
         if teclas[K_s]:
-            self.velocityY = 6
+            self.velocityY = responsiveSizeAndPosition(self.screen_size, 0, 0.46875)
         if teclas[K_a]:
-            self.velocityX = -6
+            self.velocityX = -responsiveSizeAndPosition(self.screen_size, 0, 0.46875)
         if teclas[K_d]:
-            self.velocityX = 6
+            self.velocityX = responsiveSizeAndPosition(self.screen_size, 0, 0.46875)
 
         self.rect.x += self.velocityX * deltaTime
         self.rect.y += self.velocityY * deltaTime
@@ -93,12 +97,12 @@ class Player(GameEntity):
     def Shoot(self, event, objects):
         if event.type == MOUSEBUTTONDOWN and event.button == 1 and not self.isDead:
             self.shootSound.play()
-            objects.add(Bullet(self.rect.center, self.angle, self.bullet_sprite, 20, self.target))
+            objects.add(Bullet(self.rect.center, self.angle, self.bullet_sprite, responsiveSizeAndPosition(self.screen_size, 0, 1.5625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
 
 #Esta clase es para todos los tipos de enemigos del juego
 class Enemies(GameEntity):
-    def __init__(self, sprite, bullet_sprite, position, size, vida, enemy_id):
-        super().__init__(sprite, bullet_sprite, position, size, vida)
+    def __init__(self, sprite, bullet_sprite, position, size, vida, screen_size, enemy_id, final_position):
+        super().__init__(sprite, bullet_sprite, position, size, vida, screen_size)
         self.enemy_id = enemy_id
         #Bullet interval sirve para calcular el intervalo de disparo de las balas
         self.bullet_interval = 0
@@ -114,13 +118,19 @@ class Enemies(GameEntity):
         #El enemigo ya puede empezar a disparar?
         self.canShoot = 0
 
+        #Sonido cuando muere
+        self.dedSound = mixer.Sound("Assets/SFX/enemyDying.wav")
+        self.dedSound.set_volume(0.3)
+
+        self.final_position = final_position
+
         self.loadEnemy()
 
     def loadEnemy(self):
         if self.enemy_id == "enemigo_patron_circular":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 0.3
@@ -129,8 +139,8 @@ class Enemies(GameEntity):
             
         if self.enemy_id == "enemigo_patron_circular_alternado":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 0.3
@@ -139,8 +149,8 @@ class Enemies(GameEntity):
 
         if self.enemy_id == "enemigo_patron_espiral":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 0.3
@@ -149,8 +159,8 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_espiral_alternado":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 0.3
@@ -159,8 +169,8 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_estrella":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 1
@@ -169,15 +179,22 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_spray":
             #Se configuran las opciones iniciales del enemigo
-            self.image = image.load("Assets/circular_enemy.png").convert_alpha()
-            self.image = transform.scale(self.image, (40, 40))
+            self.image = image.load("Assets/Images/circular_enemy.png").convert_alpha()
+            self.image = transform.scale(self.image, (responsiveSizeAndPosition(self.screen_size, 0, 3.125), responsiveSizeAndPosition(self.screen_size, 0, 3.125)))
             self.rect = self.image.get_rect()
             self.rect.center = self.position
             self.bullet_interval = 1
             self.bullet_vertices = 30
             self.suma_del_angulo = 360/self.bullet_vertices
 
-    def update(self, objects):
+    def update(self, objects, deltaTime, screen_size):
+        self.screen_size = screen_size
+        def ease_out(t):
+            return 1.0 - (1.0 - t) * (1.0 - t)
+        if self.rect.center != self.final_position:
+            self.rect.centerx = math.lerp(self.rect.centerx, self.final_position[0],ease_out(0.1 * deltaTime))
+            self.rect.centery = math.lerp(self.rect.centery, self.final_position[1], ease_out(0.1 * deltaTime))
+
         #Esta condicional depende del tipo de enemigos que se genera
         now = tm.time()
         if self.canShoot == True:            
@@ -189,13 +206,14 @@ class Enemies(GameEntity):
 
         #Se destruye el enemigo
         if self.vida == 0:
+            self.dedSound.play()
             self.kill()
 
     #Esta funcion son los tipos de disparo de los enemigos
     def shoot(self, objects):
         if self.enemy_id == "enemigo_patron_circular":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[1], 5, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[1], responsiveSizeAndPosition(self.screen_size, 0, 0.390625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
 
             # Agregar las balas a la lista principal fuera del hilo
@@ -204,7 +222,7 @@ class Enemies(GameEntity):
 
         if self.enemy_id == "enemigo_patron_circular_alternado":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[3], 5, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[3], responsiveSizeAndPosition(self.screen_size, 0, 0.390625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
             
             self.angulo_actual += self.suma_del_angulo * 1.5
@@ -215,10 +233,10 @@ class Enemies(GameEntity):
 
         if self.enemy_id == "enemigo_patron_espiral":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[2], 5, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[2], responsiveSizeAndPosition(self.screen_size, 0, 0.390625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
 
-            self.angulo_actual += 20
+            self.angulo_actual += responsiveSizeAndPosition(self.screen_size, 0, 1.5625)
 
             # Agregar las balas a la lista principal fuera del hilo
             while not self.shoot_queue.empty():
@@ -226,10 +244,10 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_espiral_alternado":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[6], 5, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[6], responsiveSizeAndPosition(self.screen_size, 0, 0.390625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
 
-            self.angulo_actual -= 20
+            self.angulo_actual -= responsiveSizeAndPosition(self.screen_size, 0, 1.5625)
 
             # Agregar las balas a la lista principal fuera del hilo
             while not self.shoot_queue.empty():
@@ -237,7 +255,7 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_estrella":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[5], 1.5*sin(50*self.angulo_actual * (pi/360)) + 5, self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[5], responsiveSizeAndPosition(self.screen_size, 0, 0.1171875)*sin(50*self.angulo_actual * (pi/360)) + responsiveSizeAndPosition(self.screen_size, 0, 0.390625), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
             self.angulo_actual = 0
 
@@ -247,7 +265,7 @@ class Enemies(GameEntity):
         
         if self.enemy_id == "enemigo_patron_spray":
             for _ in range(self.bullet_vertices):
-                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[4], abs(sin(500*self.angulo_actual * (pi/360)) + 5), self.target))
+                self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[4], abs(sin(500*self.angulo_actual * (pi/360)) + responsiveSizeAndPosition(self.screen_size, 0, 0.390625)), self.target, (responsiveSizeAndPosition(self.screen_size, 0, 1.5625), responsiveSizeAndPosition(self.screen_size, 0, 1.5625))))
                 self.angulo_actual += self.suma_del_angulo
             self.angulo_actual = 0
 
