@@ -1,5 +1,8 @@
 import sys
+import os
+import pickle
 from pygame import *
+import pygame_gui
 from math import *
 from random import *
 import time as tm
@@ -14,20 +17,53 @@ from EnemyGenerator import EnemyGenerator, SpawnPoint
 #Se inicia el programa
 init()
 
-#Configuración de la pantalla
-MONITOR_SIZE = [display.Info().current_w, display.Info().current_h]
-resolutions = [(426, 240), (640, 360), (854, 480), (1280, 720), MONITOR_SIZE]
-screen = display.set_caption("Space war")
-screen = display.set_mode(resolutions[3], DOUBLEBUF, 32)
-screen_size = screen.get_size()
-clock = time.Clock()
-#----------------------------
-
+resolution_index = 3
+#Max score
+max_score = 0
 #Control de las resoluciones
 fullscreen = False
 selected = [False, False, False, True, False]
-
+#Show FPS?
+fps_show = False
+selectedOption = "60"
+#El limite de fps a los que puede ir el juego
 FPS_Limit = 60
+
+#Directorio de los guardados
+saveDirectory = "save"
+
+#Se crea la carpeta si no existe
+if not os.path.exists(saveDirectory):
+    os.makedirs(saveDirectory, mode=0o700)
+
+#Archivo de guardado
+binaryArchive = os.path.join(saveDirectory, "save.gayTheOneWhoEdits")
+
+
+#Se carga el archivo de guardado si existe, si no se crea
+if os.path.exists(binaryArchive):
+    with open(binaryArchive, "rb") as f:
+        resolution_index, max_score, fullscreen = pickle.load(f)
+        selected = pickle.load(f)
+        fps_show, selectedOption, FPS_Limit = pickle.load(f)
+else:
+    with open(binaryArchive, "wb") as f:
+        pickle.dump((resolution_index, max_score, fullscreen), f)
+        pickle.dump(selected, f)
+        pickle.dump((fps_show, selectedOption, FPS_Limit), f)
+
+#Configuración de la pantalla
+MONITOR_SIZE = [display.Info().current_w, display.Info().current_h]
+resolutions = [(426, 240), (640, 360), (854, 480), (1280, 720), MONITOR_SIZE]
+
+screen = display.set_caption("Space war")
+if fullscreen:
+    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN, 32)
+else:
+    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF, 32)
+screen_size = screen.get_size()
+clock = time.Clock()
+#----------------------------
 
 #Colores
 WHITE = (255, 255, 255, 255)
@@ -38,6 +74,7 @@ CLAIRE_BLUE = (7, 245, 245)
 
 #Pantallas
 def mainMenu():
+    global selected
     click = False
     screen_size = screen.get_size()
 
@@ -66,8 +103,7 @@ def mainMenu():
     last_time = tm.time()#Esta variabe sirve para calcular el deltaTime
 
     while True:
-        dt = 1
-
+        dt = 60/FPS_Limit
         #Se dibuja el fondo
         screen.fill(BLACK)
         for particle in stars:
@@ -76,17 +112,12 @@ def mainMenu():
                 particle[3] = randint(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.78125)))
                 particle[1][1] = -1
             draw.circle(screen, particle[0], particle[1], particle[2])
-
-
-        #DeltaTime
-        dt = tm.time() - last_time
-        dt *= 60
-        last_time = tm.time()
         
         #Muestra los fps
-        fps = clock.get_fps()
-        fps_text = fps_font.render("FPS: " + str(int(fps//1)), True, WHITE)
-        screen.blit(fps_text, fps_text.get_rect(center = (responsiveSizeAndPosition(screen_size, 0, 97), responsiveSizeAndPosition(screen_size, 0, 1))))
+        if fps_show:
+            fps = clock.get_fps()
+            fps_text = fps_font.render("FPS: " + str(int(fps//1)), True, WHITE)
+            screen.blit(fps_text, fps_text.get_rect(center = (responsiveSizeAndPosition(screen_size, 0, 97), responsiveSizeAndPosition(screen_size, 0, 1))))
 
         #Mouse position
         mx, my = mouse.get_pos()
@@ -110,6 +141,16 @@ def mainMenu():
                 bg_music.load("Assets/Music/SkyFire_(Title Screen).ogg")
                 bg_music.play(-1)
                 bg_music.set_volume(0.2)
+                #Remove stars
+                for star in stars:
+                    stars.remove(star)
+                #Create new stars with new size
+                for _ in range(500):
+                    randomWhite = randint(150, 230)
+                    randSize = uniform(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.390625)))
+                    randSpeed = uniform(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.78125)))
+                    particleRect = Rect(uniform(0, screen_size[0]), uniform(0, screen_size[1]), randSize, randSize)
+                    stars.append([[randomWhite, randomWhite, randomWhite], [particleRect.x, particleRect.y], randSize, randSpeed])
 
         #Boton Options
         buttonOptionsText = buttonOptionsFont.render("OPTIONS", True, WHITE)
@@ -117,19 +158,36 @@ def mainMenu():
             buttonOptionsText = buttonOptionsFont.render("OPTIONS", True, (154, 237, 237))
             if click:
                 button.play()
-                Options(screen, stars, FPS_Limit, resolutions)
+                Options(screen, stars, resolutions)
                 #Recalculate the size of the screen
                 screen_size = screen.get_size()
+
                 #Resize all the fonts
                 fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 buttonPlayFont = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 5)))
                 buttonOptionsFont = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 5)))
+
+                #Remove stars
+                for star in stars:
+                    stars.remove(star)
+                #Create new stars with new size
+                for _ in range(500):
+                    randomWhite = randint(150, 230)
+                    randSize = uniform(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.390625)))
+                    randSpeed = uniform(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.78125)))
+                    particleRect = Rect(uniform(0, screen_size[0]), uniform(0, screen_size[1]), randSize, randSize)
+                    stars.append([[randomWhite, randomWhite, randomWhite], [particleRect.x, particleRect.y], randSize, randSpeed])
 
 
         #Event manager
         click = False
         for e in event.get():
             if e.type == QUIT:
+                with open(binaryArchive, "wb") as f:
+                    pickle.dump((resolution_index, max_score, fullscreen), f)
+                    pickle.dump(selected, f)
+                    pickle.dump((fps_show, selectedOption, FPS_Limit), f)
+
                 quit()
                 sys.exit()
             if e.type == MOUSEBUTTONDOWN:
@@ -137,6 +195,10 @@ def mainMenu():
                     click = True
             if e.type == KEYDOWN:
                 if e.key == K_ESCAPE:
+                    with open(binaryArchive, "wb") as f:
+                        pickle.dump((resolution_index, max_score, fullscreen), f)
+                        pickle.dump(selected, f)
+                        pickle.dump((fps_show, selectedOption, FPS_Limit), f)
                     quit()
                     sys.exit()
 
@@ -149,23 +211,39 @@ def mainMenu():
         display.flip()
         clock.tick(FPS_Limit)
 
-def Options(screen, stars, fps_limit, resolutions):
+def Options(screen, stars, resolutions):
     screen_size = screen.get_size()
+    global resolution_index
 
     #Se inicializa las varibales de manera global para que no haya conflictos y se "guarde" la resolucion
     global fullscreen
     global selected
 
+    manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+
+    #Se inicializa todas las variables necesarias para mostrar los fps
+    global fps_show
+    global FPS_Limit
+    global selectedOption
+    fps_limit_options = ["30", "60", "120", "144", "240"]
+
     
     #Fonts
+    fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
     title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
     option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
     select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+
+    #Fps limit Text
+    fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+    fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
 
     last_time = tm.time()
     click = False
     running = True
     while running:
+        ui_refresh_rate = clock.tick(FPS_Limit)/1000
+
         #Surface with SourceAlpha
         game_window = Surface(screen_size, SRCALPHA)
 
@@ -184,6 +262,12 @@ def Options(screen, stars, fps_limit, resolutions):
                 particle[3] = uniform(int(responsiveSizeAndPosition(screen_size, 0, 0.078125)), int(responsiveSizeAndPosition(screen_size, 0, 0.78125)))
                 particle[1][1] = 0
             draw.circle(screen, particle[0], particle[1], particle[2])
+
+        #Muestra los fps
+        if fps_show:
+            fps = clock.get_fps()
+            fps_text = fps_font.render("FPS: " + str(int(fps//1)), True, WHITE)
+            screen.blit(fps_text, fps_text.get_rect(center = (responsiveSizeAndPosition(screen_size, 0, 97), responsiveSizeAndPosition(screen_size, 0, 1))))
 
         #Panel de fondo
         draw.rect(game_window, (7, 245, 245, 120), (responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 1, 5), responsiveSizeAndPosition(screen_size, 0, 90), responsiveSizeAndPosition(screen_size, 1, 90)), 0, int(responsiveSizeAndPosition(screen_size, 0, 0.3125)))
@@ -210,18 +294,26 @@ def Options(screen, stars, fps_limit, resolutions):
             resolution1_text = select_font.render("426 X 240", True, WHITE)
             game_window.blit(resolution1_text, resolution1_text.get_rect(center=(panel_rect1.centerx, panel_rect1.centery + responsiveSizeAndPosition(screen_size, 1, 0.3))))
             if click:
-                if fullscreen:
-                    screen = display.set_mode(resolutions[0], FULLSCREEN)
-                else:
-                    screen = display.set_mode(resolutions[0], DOUBLEBUF)
+                resolution_index = 0
                 selected = [True, False, False, False, False]
+                if fullscreen:
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
+                else:
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
 
-                screen = display.set_mode(resolutions[0], DOUBLEBUF)
                 screen_size = screen.get_size()
+                
                 #Resize all the fonts
+                fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+                
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+                
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -249,17 +341,26 @@ def Options(screen, stars, fps_limit, resolutions):
             resolution2_text = select_font.render("640 X 360", True, WHITE)
             game_window.blit(resolution2_text, resolution2_text.get_rect(center=(panel_rect2.centerx, panel_rect2.centery + responsiveSizeAndPosition(screen_size, 1, 0.3))))
             if click:
-                if fullscreen:
-                    screen = display.set_mode(resolutions[1], FULLSCREEN)
-                else:
-                    screen = display.set_mode(resolutions[1], DOUBLEBUF)
+                resolution_index = 1
                 selected = [False, True, False, False, False]
+                if fullscreen:
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
+                else:
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
 
                 screen_size = screen.get_size()
+                
                 #Resize all the fonts
+                fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+                
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -286,17 +387,26 @@ def Options(screen, stars, fps_limit, resolutions):
             resolution3_text = select_font.render("854 X 480", True, WHITE)
             game_window.blit(resolution3_text, resolution3_text.get_rect(center=(panel_rect3.centerx, panel_rect3.centery + responsiveSizeAndPosition(screen_size, 1, 0.3))))
             if click:
-                if fullscreen:
-                    screen = display.set_mode(resolutions[2], FULLSCREEN)
-                else:
-                    screen = display.set_mode(resolutions[2], DOUBLEBUF)
+                resolution_index = 2
                 selected = [False, False, True, False, False]
+                if fullscreen:
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
+                else:
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
 
                 screen_size = screen.get_size()
+                
                 #Resize all the fonts
+                fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+                
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -323,18 +433,26 @@ def Options(screen, stars, fps_limit, resolutions):
             resolution4_text = select_font.render("1280 X 720", True, WHITE)
             game_window.blit(resolution4_text, resolution4_text.get_rect(center=(panel_rect4.centerx, panel_rect4.centery + responsiveSizeAndPosition(screen_size, 1, 0.3))))
             if click:
-                if fullscreen:
-                    screen = display.set_mode(resolutions[3], FULLSCREEN)
-                else:
-                    screen = display.set_mode(resolutions[3], DOUBLEBUF)
-
+                resolution_index = 3
                 selected = [False, False, False, True, False]
+                if fullscreen:
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
+                else:
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
 
                 screen_size = screen.get_size()
+                
                 #Resize all the fonts
+                fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+                
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -361,18 +479,26 @@ def Options(screen, stars, fps_limit, resolutions):
             resolution5_text = select_font.render(str(MONITOR_SIZE[0]) + " X " +  str(MONITOR_SIZE[1]), True, WHITE)
             game_window.blit(resolution5_text, resolution5_text.get_rect(center=(panel_rect5.centerx, panel_rect5.centery + responsiveSizeAndPosition(screen_size, 1, 0.3))))
             if click:
-                if fullscreen:
-                    screen = display.set_mode(resolutions[4], FULLSCREEN)
-                else:
-                    screen = display.set_mode(resolutions[4], DOUBLEBUF)
-
+                resolution_index = 4
                 selected = [False, False, False, False, True]
+                if fullscreen:
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
+                else:
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
 
                 screen_size = screen.get_size()
+                
                 #Resize all the fonts
+                fps_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 1, 2.5)))
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+                
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -398,15 +524,32 @@ def Options(screen, stars, fps_limit, resolutions):
             if click:
                 fullscreen = not fullscreen
                 if fullscreen:
-                    screen = display.set_mode(resolutions[4], FULLSCREEN)
-                    selected = [False, False, False, False, True]
+                    screen = display.set_mode(resolutions[resolution_index], FULLSCREEN)
                 else:
-                    screen = display.set_mode(resolutions[3], DOUBLEBUF)
+                    if selected[0]:
+                        resolution_index = 0
+                    elif selected[1]:
+                        resolution_index = 1
+                    elif selected[2]:
+                        resolution_index = 2
+                    elif selected[3]:
+                        resolution_index = 3
+                    elif selected[4]:
+                        resolution_index = 4
+                    screen = display.set_mode(resolutions[resolution_index], DOUBLEBUF)
+
                 screen_size = screen.get_size()
+
                 #Resize all the fonts
                 title_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 4.34375)))
                 option_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2.34375)))
                 select_font = font.Font("Assets/Fonts/Minecraft.ttf", int(responsiveSizeAndPosition(screen_size, 0, 2)))
+
+                #Resize the manager ui
+                manager_ui = pygame_gui.UIManager(resolutions[resolution_index], "themeUI.json")
+                fps_limit_options_text = select_font.render("FPS Limit: ", True, WHITE)
+                fpsLimit_OptionsMenu = pygame_gui.elements.UIDropDownMenu(fps_limit_options, selectedOption,Rect(responsiveSizeAndPosition(screen_size, 0, 50) + fps_limit_options_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 24.5), responsiveSizeAndPosition(screen_size, 0, 5), responsiveSizeAndPosition(screen_size, 0, 2.5)), manager_ui, object_id="#Fps_Limit_Option")
+
                 #Remove stars
                 for star in stars:
                     stars.remove(star)
@@ -418,25 +561,65 @@ def Options(screen, stars, fps_limit, resolutions):
                     particleRect = Rect(uniform(0, screen_size[0]), uniform(0, screen_size[1]), randSize, randSize)
                     stars.append([[randomWhite, randomWhite, randomWhite], [particleRect.x, particleRect.y], randSize, randSpeed])
 
+        #FPS Control
+        fpsControl_Text = option_font.render("FPS Control", True, WHITE)
+        game_window.blit(fpsControl_Text, (responsiveSizeAndPosition(screen_size, 0, 50), responsiveSizeAndPosition(screen_size, 1, 15)))
+
+        #Toogle Show FPS
+        showFPS_text = select_font.render("Show FPS", True, WHITE)
+        game_window.blit(showFPS_text, showFPS_text.get_rect(center=(responsiveSizeAndPosition(screen_size, 0, 50) + showFPS_text.get_size()[0]/2, responsiveSizeAndPosition(screen_size, 1, 22))))
+        cube_Rect_showFPS = Rect(responsiveSizeAndPosition(screen_size, 0, 51) + showFPS_text.get_size()[0], responsiveSizeAndPosition(screen_size, 1, 20), resolution6_text.get_size()[1], resolution6_text.get_size()[1])
+        draw.rect(game_window, WHITE, cube_Rect_showFPS, int(responsiveSizeAndPosition(screen_size, 0, 0.3125)), int(responsiveSizeAndPosition(screen_size, 0, 0.3125)))
+        if fps_show:
+            draw.circle(game_window, WHITE, cube_Rect_showFPS.center, responsiveSizeAndPosition(screen_size, 0, 0.5))
+        if cube_Rect_showFPS.collidepoint(mx, my):
+            #Cambia el color con hover
+            draw.rect(game_window, (75, 117, 224), cube_Rect_showFPS, int(responsiveSizeAndPosition(screen_size, 0, 0.3125)), int(responsiveSizeAndPosition(screen_size, 0, 0.3125)))
+            if fps_show:
+                draw.circle(game_window, (75, 117, 224), cube_Rect_showFPS.center, responsiveSizeAndPosition(screen_size, 0, 0.5))
+            if click:
+                fps_show = not fps_show
+
+        #Draw fps limit on screen
+        game_window.blit(fps_limit_options_text, (responsiveSizeAndPosition(screen_size, 0, 50), responsiveSizeAndPosition(screen_size, 1, 25.5)))
+        
+
         #event manager
         click = False
         for e in event.get():
             if e.type == QUIT:
+                with open(binaryArchive, "wb") as f:
+                    pickle.dump((resolution_index, max_score, fullscreen), f)
+                    pickle.dump(selected, f)
+                    pickle.dump((fps_show, selectedOption, FPS_Limit), f)
+
                 quit()
                 sys.exit()
+
+            manager_ui.process_events(e)
+            if e.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                selectedOption = e.text
+                for option in fps_limit_options:
+                    if selectedOption == option:
+                        FPS_Limit = int(e.text)
+
             if e.type == MOUSEBUTTONDOWN:
                 if e.button == 1:
                     click = True
             if e.type == KEYDOWN:
                 if e.key == K_ESCAPE:
                     running = False
+
+        manager_ui.update(ui_refresh_rate)
+        manager_ui.draw_ui(game_window)
         screen.blit(game_window, (0,0))
         display.flip()
-        clock.tick(fps_limit)
+        clock.tick(FPS_Limit)
 
         
 
 def Game(stars, fps_limit):
+    global selected
     screen_size = screen.get_size()
     game_surface = Surface(screen_size)
 
@@ -453,6 +636,10 @@ def Game(stars, fps_limit):
     bullets = sprite.Group()
     enemies = sprite.Group()
     playerGroup = sprite.Group()
+
+    #Se inicializa todas las variables necesarias para mostrar los fps
+    global fps_font
+    global fps_show
     
     #----------------------------
     #Sprite sheets
@@ -536,9 +723,10 @@ def Game(stars, fps_limit):
 
 
         #Muestra los fps
-        fps = clock.get_fps()
-        fps_text = fps_font.render("FPS: " + str(int(fps//1)), True, WHITE)
-        screen.blit(fps_text, fps_text.get_rect(center = (responsiveSizeAndPosition(screen_size, 0, 97), responsiveSizeAndPosition(screen_size, 0, 1))))
+        if fps_show:
+            fps = clock.get_fps()
+            fps_text = fps_font.render("FPS: " + str(int(fps//1)), True, WHITE)
+            screen.blit(fps_text, fps_text.get_rect(center = (responsiveSizeAndPosition(screen_size, 0, 97), responsiveSizeAndPosition(screen_size, 0, 1))))
 
         #Muestra el puntaje
         coins_text = coins_font.render("Score: " + str(coins), True, WHITE)
@@ -552,14 +740,18 @@ def Game(stars, fps_limit):
         #Event manager
         for e in event.get():
             if e.type == QUIT:
+                with open(binaryArchive, "wb") as f:
+                    pickle.dump((resolution_index, max_score, fullscreen), f)
+                    pickle.dump(selected, f)
+                    pickle.dump((fps_show, selectedOption, FPS_Limit), f)
+
                 quit()
                 sys.exit()
             if e.type == KEYDOWN:
                 if e.key == K_f:
                     enemyGenerator.generateEnemy()
                 if e.key == K_ESCAPE:
-                    quit()
-                    sys.exit()
+                    running = False
             #Para que funcione el disparo
             player.Shoot(e, bullets)
 
@@ -614,6 +806,11 @@ def Game(stars, fps_limit):
 #----------------------------
 
 mainMenu()
+
+with open(binaryArchive, "wb") as f:
+                    pickle.dump((resolution_index, max_score, fullscreen), f)
+                    pickle.dump(selected, f)
+                    pickle.dump((fps_show, selectedOption, FPS_Limit), f)
 
 quit()
 sys.exit()

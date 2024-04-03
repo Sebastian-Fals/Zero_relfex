@@ -1,0 +1,56 @@
+{
+    "defaults":
+    {
+        "colours":
+        {
+            "normal_bg":"rgb(180, 245, 245)",
+            "hovered_bg":"rgb(75, 117, 224)",
+            "disabled_bg":"#25292e",
+            "selected_bg":"rgb(0 , 1, 35)",
+            "dark_bg":"#15191e",
+            "normal_text":"rgb(0, 64, 224)",
+            "hovered_text": "white",
+            "selected_text":"rgb(255, 255, 255)",
+            "disabled_text":"rgb(255, 255, 255)",
+            "link_text": "#0000EE",
+            "link_hover": "rgb(255, 255, 255)",
+            "link_selected": "rgb(255, 255, 255)",
+            "text_shadow": "#777777",
+            "normal_border": "#DDDDDD",
+            "hovered_border": "#B0B0B0",
+            "disabled_border": "#808080",
+            "selected_border": "#8080B0",
+            "active_border": "#8080B0",
+            "filled_bar":"#f4251b",
+            "unfilled_bar":"#CCCCCC"
+        },
+        "font":
+         {
+             "name": "montserrat",
+             "size": "12",
+             "bold": "0",
+             "italic": "1",
+             "regular_resource": {
+                  "package": "data.fonts",
+                  "resource": "Montserrat-Regular.ttf"
+             },
+             "bold_resource": {
+                  "package": "data.fonts",
+                  "resource": "Montserrat-Bold.ttf"
+             },
+             "italic_resource": {
+                  "package": "data.fonts",
+                  "resource": "Montserrat-Italic.ttf"
+             },
+             "bold_italic_resource": {
+                  "package": "data.fonts",
+                  "resource": "Montserrat-BoldItalic.ttf"
+             }
+         },
+        "misc":{
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "4",
+            "border_width": "0"
+        }
+    }
+}
