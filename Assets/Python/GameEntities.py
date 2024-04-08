@@ -1,10 +1,10 @@
 import time as tm
+from threading import Thread
 from pygame import *
 from math import *
-from threading import *
 from queue import *
-from BulletClass import Bullet
-from funciones import tamanoDinamico
+from Assets.Python.BulletClass import Bullet
+from Assets.Python.funciones import tamanoDinamico
 
 class GameEntity(sprite.Sprite):
     def __init__(self, path: str, sprite, bullet_sprite, position, size, vida, screen_size):

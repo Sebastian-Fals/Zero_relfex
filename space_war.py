@@ -8,9 +8,6 @@ from pygame import *
 from math import *
 from random import *
 
-#Se agrega la ruta de los modulos requeridos
-sys.path.append("Assets/Python/")
-
 #Se importan los modulos personalizados
 from Assets.Python.GameEntities import Player
 from Assets.Python.funciones import get_image, tamanoDinamico, save

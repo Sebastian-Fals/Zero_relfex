@@ -1,7 +1,7 @@
 from random import *
 from pygame import *
 import time as tm
-from funciones import tamanoDinamico
+from Assets.Python.funciones import tamanoDinamico
 
 class Estrellas():
     def __init__(self, superficie: Surface, cantidad: int, anchoPantalla: int, altoPantalla: int):

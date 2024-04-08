@@ -1,9 +1,9 @@
 import time as tm
+import threading as th
 from pygame import *
 from random import *
-from threading import *
-from GameEntities import Enemies
-from funciones import tamanoDinamico
+from Assets.Python.GameEntities import Enemies
+from Assets.Python.funciones import tamanoDinamico
 
 class SpawnPoint():
     def __init__(self, position):
@@ -34,7 +34,7 @@ class EnemyGenerator():
         self.bulletSprite = bulletSprite
         self.group = group
         self.difficulty = difficulty
-        self.lock = Lock()
+        self.lock = th.Lock()
         self.enemies_generated = 0  # Contador de enemigos generados
         self.actualwave = 1 #Control de la oleada actual
         self.waveInText = 1
@@ -51,7 +51,7 @@ class EnemyGenerator():
             self.setDifficulty()
             self.enemies_generated = 0
             # Utilizar threading para generar enemigos sin bloquear el hilo principal
-            enemy_thread = Thread(target=self.generateEnemies, args=(screen_size, ))
+            enemy_thread = th.Thread(target=self.generateEnemies, args=(screen_size, ))
             enemy_thread.daemon = True
             enemy_thread.start()
 
