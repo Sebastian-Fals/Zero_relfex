@@ -1,9 +1,9 @@
 #Se importan todas las librerias necesarias
 import sys
 import os
+import time as tm
 import pickle
 import pygame_gui
-import time as tm
 from pygame import *
 from math import *
 from random import *
@@ -12,38 +12,38 @@ from random import *
 sys.path.append("Assets/Python/")
 
 #Se importan los modulos personalizados
-from GameEntities import Player
-from funciones import get_image, tamanoDinamico, save
-from EnemyGenerator import EnemyGenerator, SpawnPoint
-from UI_classes import Estrellas, Boton
+from Assets.Python.GameEntities import Player
+from Assets.Python.funciones import get_image, tamanoDinamico, save
+from Assets.Python.EnemyGenerator import EnemyGenerator, SpawnPoint
+from Assets.Python.UI_classes import Estrellas, Boton
 
 #Se inicia el programa
 init()
 
 # Se inicializa las variables globales
 # La resolucion que esta definida en el juego
-resolucion_index = 3
+resolucion_index: int = 3
 # La puntuación máxima
-max_score = 0
+max_score: int = 0
 # ¿El juego esta a pantalla completa?
-pantalla_completa = False
+pantalla_completa: bool = False
 # Que resolucion está seleccionada
-resolucion_elegida = [False, False, False, True, False]
+resolucion_elegida: list[bool] = [False, False, False, True, False]
 # ¿Mostrar los fps?
-mostrar_fps = False
+mostrar_fps: bool = False
 # El limite de fps a los que puede ir el juego
-limite_fps_texto = "60"
-limite_fps = 60
+limite_fps_texto: str = "60"
+limite_fps: int = 60
 
 # Directorio de los archivos de guardado
-carpeta_guardado = "data"
+carpeta_guardado: str = "data"
 
 # Se crea el directorio si no existe
 if not os.path.exists(carpeta_guardado):
     os.makedirs(carpeta_guardado)
 
 # Archivo de guardado
-archivo_binario = os.path.join(carpeta_guardado, "save.data")
+archivo_binario: str = os.path.join(carpeta_guardado, "save.data")
 
 
 # Se carga el archivo de guardado si existe, si no se crea
@@ -55,14 +55,14 @@ else:
                            mostrar_fps, limite_fps_texto, limite_fps])
 
 # Tamaño del monitor
-MONITOR_SIZE = [display.Info().current_w, display.Info().current_h]
+MONITOR_SIZE: tuple[int, int] = (display.Info().current_w, display.Info().current_h)
 # Las resoluciones disponibles
-resoluciones = [(426, 240), (640, 360), (854, 480), (1280, 720), MONITOR_SIZE]
+resoluciones: list[tuple[int, int]] = [(426, 240), (640, 360), (854, 480), (1280, 720), MONITOR_SIZE]
 
 # El titulo de la pantalla
-pantalla = display.set_caption("Space war")
+display.set_caption("Space war")
 # El icono de la pantalla
-pantalla = display.set_icon(image.load("Assets/Icon/icon.png"))
+display.set_icon(image.load("Assets/Icon/icon.png"))
 
 # Pone la pantalla completa si pantalla_completa es true
 if pantalla_completa:

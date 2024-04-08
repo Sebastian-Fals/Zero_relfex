@@ -1,4 +1,9 @@
 
 /Krita_archives
 /__pycache__
+/Assets/Python/__pycache__
 /save
+/.mypy_cache
+/data
+mypy.ini
+pyinstaller.bat

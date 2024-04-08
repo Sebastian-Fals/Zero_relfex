@@ -40,6 +40,7 @@ class EnemyGenerator():
         self.waveFont = font.Font("Assets/Fonts/Minecraft.ttf", int(tamanoDinamico(self.screenSize[1], 10)))
         self.waveText = self.waveFont.render("Wave " + str(self.waveInText), True, (255, 255, 255, 255))
         self.any_spawn_points_occupied = 0
+        self.enmeyLife = 5
 
     def update(self, screen_size):
         self.any_spawn_points_occupied = all(spawn_point.canSpawn for spawn_point in self.spawnPoints)
@@ -72,7 +73,7 @@ class EnemyGenerator():
                     while self.spawnPoints[randomPosition].canSpawn == False:
                         randomPosition = randint(0, (len(self.spawnPoints) - 1))
                     if self.spawnPoints[randomPosition].canSpawn == True:
-                        self.group.add(Enemies(image.load("Assets/Images/circular_enemy.png").convert_alpha(), self.bulletSprite, initialPositions[randomInitialPositions], (40, 40), 10, self.screenSize, self.enemy_IDs[randomID], self.spawnPoints[randomPosition].position))
+                        self.group.add(Enemies(image.load("Assets/Images/circular_enemy.png").convert_alpha(), self.bulletSprite, initialPositions[randomInitialPositions], (40, 40), self.enmeyLife, self.screenSize, self.enemy_IDs[randomID], self.spawnPoints[randomPosition].position))
                     tm.sleep(0.5)
                     self.enemies_generated += 1
                     self.waveInText = self.actualwave
@@ -82,7 +83,10 @@ class EnemyGenerator():
     def setDifficulty(self):
         if self.difficulty == "easy":
             self.enemyCount = randint(int(1 + (self.actualwave * 0.2)), int(3 + (self.actualwave * 0.2)))
+            self.enmeyLife = 5
         if self.difficulty == "medium":
             self.enemyCount = randint(int(2 + (self.actualwave * 0.2)), int(5 + (self.actualwave * 0.2)))
+            self.enmeyLife = 10
         if self.difficulty == "hard":
             self.enemyCount = randint(int(4 + (self.actualwave * 0.2)), int(8 + (self.actualwave * 0.2)))
+            self.enmeyLife = 15

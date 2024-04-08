@@ -2,7 +2,7 @@ import pickle
 from pygame import *
 
 #Esta funcion sirve para localizar un sprite en una prite sheet y convertirlo en una imagen
-def get_image(sheet, frame, width, height, colour):
+def get_image(sheet: Surface, frame: int, width: int, height: int, colour: tuple[int]) -> Surface:
     img = Surface((width, height)).convert_alpha()
     img.blit(sheet, (0, 0), ((frame * width), 0, width, height))
     img.set_colorkey(colour)

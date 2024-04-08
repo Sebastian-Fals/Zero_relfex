@@ -4,14 +4,14 @@ import time as tm
 from funciones import tamanoDinamico
 
 class Estrellas():
-    def __init__(self, superficie, cantidad, anchoPantalla, altoPantalla):
+    def __init__(self, superficie: Surface, cantidad: int, anchoPantalla: int, altoPantalla: int):
         self.cantidad = cantidad # La cantidad de estrellas a generar
         self.superficie = superficie
         self.anchoPantalla = anchoPantalla # El ancho de la pantalla
         self.altoPantalla = altoPantalla # El alto de la pantalla
         self.estrellas = self.generar() # Las estrellas
 
-    def update(self, deltaTime):
+    def update(self, deltaTime: float):
         for estrella in self.estrellas:
             # Mueve las estrellas a su velocidad constantemente
             estrella[1][1] += estrella[3] * deltaTime
@@ -35,7 +35,7 @@ class Estrellas():
             estrellas.append([[randomWhite, randomWhite, randomWhite], [particleRect.x, particleRect.y], randSize, randSpeed])
         return estrellas
     
-    def refrescar(self, anchoPantalla, altoPantalla):
+    def refrescar(self, anchoPantalla: int, altoPantalla: int):
         # Calcula de nuevo el ancho y el alto de la pantalla
         self.anchoPantalla = anchoPantalla
         self.altoPantalla = altoPantalla
@@ -48,10 +48,10 @@ class Estrellas():
         self.estrellas = self.generar()
 
 class Boton():
-    def __init__(self, superficie, tamano, posicion, fuente, texto, colorTexto, colorTextoEncima, sonidoClick, sonidoEncima, tieneFondo, colorFondo, colorFondoEncima, radio):
+    def __init__(self, superficie: Surface, tamano: tuple[float], posicion: tuple[int, int], fuente: font.Font, texto: str, colorTexto: tuple[int], colorTextoEncima: tuple[int], sonidoClick: mixer.Sound, sonidoEncima: mixer.Sound, tieneFondo: bool, colorFondo: tuple[int], colorFondoEncima: tuple[int], radio: float):
         self.superficie = superficie
         self.tamano = tamano
-        self.posicion = posicion
+        self.posicion: tuple[int, int] = posicion
         self.rect = Rect((0, 0), self.tamano)
         self.rect.center = self.posicion
         self.fuente = fuente
@@ -67,7 +67,6 @@ class Boton():
             self.sonidoEncima = sonidoEncima
             self.yaSono = False
         self.tieneFondo = tieneFondo
-        self.radio = 0
         if tieneFondo:
             self.colorFondo = colorFondo
             self.colorFondoEncima = colorFondoEncima

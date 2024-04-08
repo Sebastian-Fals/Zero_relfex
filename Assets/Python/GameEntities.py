@@ -206,7 +206,7 @@ class Enemies(GameEntity):
                 self.ultimo_disparo = now
 
         #Se destruye el enemigo
-        if self.vida == 0:
+        if self.vida <= 0:
             self.dedSound.play()
             self.kill()
 
