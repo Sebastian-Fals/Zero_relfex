@@ -4,7 +4,48 @@ import time as tm
 from Assets.Python.funciones import tamanoDinamico
 
 class Estrellas():
+    """
+    A class to represent the stars in the background.
+
+    ...
+
+    Attributes
+    ----------
+    cantidad : int
+        the number of stars
+    superficie : pygame.Surface
+        the surface to draw the stars on
+    anchoPantalla : int
+        the width of the screen
+    altoPantalla : int
+        the height of the screen
+    estrellas : list
+        a list of stars
+
+    Methods
+    -------
+    update(deltaTime):
+        Updates the stars.
+    generar():
+        Generates the stars.
+    refrescar(anchoPantalla, altoPantalla):
+        Refreshes the stars.
+    """
     def __init__(self, superficie: Surface, cantidad: int, anchoPantalla: int, altoPantalla: int):
+        """
+        Constructs all the necessary attributes for the stars object.
+
+        Parameters
+        ----------
+            superficie : pygame.Surface
+                the surface to draw the stars on
+            cantidad : int
+                the number of stars
+            anchoPantalla : int
+                the width of the screen
+            altoPantalla : int
+                the height of the screen
+        """
         self.cantidad = cantidad # La cantidad de estrellas a generar
         self.superficie = superficie
         self.anchoPantalla = anchoPantalla # El ancho de la pantalla
@@ -12,6 +53,14 @@ class Estrellas():
         self.estrellas = self.generar() # Las estrellas
 
     def update(self, deltaTime: float):
+        """
+        Updates the stars.
+
+        Parameters
+        ----------
+            deltaTime : float
+                the time since the last frame
+        """
         for estrella in self.estrellas:
             # Mueve las estrellas a su velocidad constantemente
             estrella[1][1] += estrella[3] * deltaTime
@@ -23,6 +72,14 @@ class Estrellas():
             draw.circle(self.superficie, estrella[0], estrella[1], estrella[2])
 
     def generar(self):
+        """
+        Generates the stars.
+
+        Returns
+        -------
+            list
+                a list of stars
+        """
         # Crea una variable interna para guardar cada estrella
         estrellas =[]
 
@@ -36,6 +93,16 @@ class Estrellas():
         return estrellas
     
     def refrescar(self, anchoPantalla: int, altoPantalla: int):
+        """
+        Refreshes the stars.
+
+        Parameters
+        ----------
+            anchoPantalla : int
+                the width of the screen
+            altoPantalla : int
+                the height of the screen
+        """
         # Calcula de nuevo el ancho y el alto de la pantalla
         self.anchoPantalla = anchoPantalla
         self.altoPantalla = altoPantalla
@@ -48,7 +115,96 @@ class Estrellas():
         self.estrellas = self.generar()
 
 class Boton():
+    """
+    A class to represent a button.
+
+    ...
+
+    Attributes
+    ----------
+    superficie : pygame.Surface
+        the surface to draw the button on
+    tamano : tuple[float]
+        the size of the button
+    posicion : tuple[int, int]
+        the position of the button
+    rect : pygame.Rect
+        the rect of the button
+    fuente : pygame.font.Font
+        the font of the text
+    texto : str
+        the text of the button
+    colorTexto : tuple[int]
+        the color of the text
+    colorTextoEncima : tuple[int]
+        the color of the text when the mouse is over it
+    textoRenderizado : pygame.Surface
+        the rendered text
+    textoRenderizadoEncima : pygame.Surface
+        the rendered text when the mouse is over it
+    boton : pygame.Surface
+        the surface of the button
+    sonidoClick : pygame.mixer.Sound
+        the sound of the click
+    sonidoEncima : pygame.mixer.Sound
+        the sound when the mouse is over it
+    yaSono : bool
+        whether the sound has already been played
+    tieneFondo : bool
+        whether the button has a background
+    colorFondo : tuple[int]
+        the color of the background
+    colorFondoEncima : tuple[int]
+        the color of the background when the mouse is over it
+    radio : float
+        the radius of the corners
+    hover : bool
+        whether the mouse is over the button
+
+    Methods
+    -------
+    update():
+        Updates the button.
+    refrescar(tamano, posicion):
+        Refreshes the button.
+    onHover():
+        Checks if the mouse is over the button.
+    onClick(funcion, pararMusica, musica, tiempoEspera, *args):
+        Executes the function when the button is clicked.
+    """
     def __init__(self, superficie: Surface, tamano: tuple[float], posicion: tuple[int, int], fuente: font.Font, texto: str, colorTexto: tuple[int], colorTextoEncima: tuple[int], sonidoClick: mixer.Sound, sonidoEncima: mixer.Sound, tieneFondo: bool, colorFondo: tuple[int], colorFondoEncima: tuple[int], radio: float):
+        """
+        Constructs all the necessary attributes for the button object.
+
+        Parameters
+        ----------
+            superficie : pygame.Surface
+                the surface to draw the button on
+            tamano : tuple[float]
+                the size of the button
+            posicion : tuple[int, int]
+                the position of the button
+            fuente : pygame.font.Font
+                the font of the text
+            texto : str
+                the text of the button
+            colorTexto : tuple[int]
+                the color of the text
+            colorTextoEncima : tuple[int]
+                the color of the text when the mouse is over it
+            sonidoClick : pygame.mixer.Sound
+                the sound of the click
+            sonidoEncima : pygame.mixer.Sound
+                the sound when the mouse is over it
+            tieneFondo : bool
+                whether the button has a background
+            colorFondo : tuple[int]
+                the color of the background
+            colorFondoEncima : tuple[int]
+                the color of the background when the mouse is over it
+            radio : float
+                the radius of the corners
+        """
         self.superficie = superficie
         self.tamano = tamano
         self.posicion: tuple[int, int] = posicion
@@ -76,6 +232,9 @@ class Boton():
         
 
     def update(self):
+        """
+        Updates the button.
+        """
         self.boton.fill((0, 0, 0))
         if not self.hover:
             # Dibujar el fondo si tiene fondo
@@ -94,10 +253,23 @@ class Boton():
         self.superficie.blit(self.boton, (self.rect.x, self.rect.y))
 
     def refrescar(self, tamano, posicion):
+        """
+        Refreshes the button.
+
+        Parameters
+        ----------
+            tamano : tuple[float]
+                the size of the button
+            posicion : tuple[int, int]
+                the position of the button
+        """
         self.tamano = tamano
         self.posicion = posicion
 
     def onHover(self):
+        """
+        Checks if the mouse is over the button.
+        """
         mx, my = mouse.get_pos()
 
         self.hover = False
@@ -117,6 +289,22 @@ class Boton():
                 self.yaSono = True
     
     def onClick(self, funcion, pararMusica, musica, tiempoEspera, *args):
+        """
+        Executes the function when the button is clicked.
+
+        Parameters
+        ----------
+            funcion : function
+                the function to execute
+            pararMusica : bool
+                whether to stop the music
+            musica : pygame.mixer.Sound
+                the music
+            tiempoEspera : float
+                the time to wait
+            *args : tuple
+                the arguments of the function
+        """
         if pararMusica:
             musica.pause()
         self.sonidoClick.play()

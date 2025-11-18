@@ -7,7 +7,58 @@ from Assets.Python.BulletClass import Bullet
 from Assets.Python.funciones import tamanoDinamico
 
 class GameEntity(sprite.Sprite):
+    """
+    A class to represent a game entity.
+
+    ...
+
+    Attributes
+    ----------
+    path : str
+        the path to the assets folder
+    originalSprite : pygame.Surface
+        the original sprite of the entity
+    image : pygame.Surface
+        the current sprite of the entity
+    position : tuple[int, int]
+        the position of the entity
+    rect : pygame.Rect
+        the rect of the entity
+    vida : int
+        the life of the entity
+    bullet_sprite : pygame.Surface
+        the sprite of the bullet
+    screen_size : tuple[int, int]
+        the size of the screen
+
+    Methods
+    -------
+    take_damage(amount):
+        Reduces the life of the entity.
+    resize(sizeX, sizeY):
+        Resizes the entity.
+    """
     def __init__(self, path: str, sprite, bullet_sprite, position, size, vida, screen_size):
+        """
+        Constructs all the necessary attributes for the game entity object.
+
+        Parameters
+        ----------
+            path : str
+                the path to the assets folder
+            sprite : pygame.Surface
+                the sprite of the entity
+            bullet_sprite : pygame.Surface
+                the sprite of the bullet
+            position : tuple[int, int]
+                the position of the entity
+            size : tuple[int, int]
+                the size of the entity
+            vida : int
+                the life of the entity
+            screen_size : tuple[int, int]
+                the size of the screen
+        """
         super().__init__()
         self.path: str = path
         self.originalSprite = transform.scale(sprite, size)
@@ -21,13 +72,82 @@ class GameEntity(sprite.Sprite):
         self.screen_size = screen_size
         
     def take_damage(self, amount):
+        """
+        Reduces the life of the entity.
+
+        Parameters
+        ----------
+            amount : int
+                the amount of damage
+        """
         self.vida -= amount
     
     def resize(self, sizeX, sizeY):
+        """
+        Resizes the entity.
+
+        Parameters
+        ----------
+            sizeX : int
+                the new width of the entity
+            sizeY : int
+                the new height of the entity
+        """
         self.image = transform.scale(self.image, (sizeX, sizeY))
 
 class Player(GameEntity):
+    """
+    A class to represent the player.
+
+    ...
+
+    Attributes
+    ----------
+    velocityX : int
+        the velocity of the player in the x axis
+    velocityY : int
+        the velocity of the player in the y axis
+    angle : int
+        the angle of the player
+    mouse_pos : int
+        the position of the mouse
+    target : str
+        the target of the bullets
+    vida : int
+        the life of the player
+    isDead : bool
+        whether the player is dead or not
+    shootSound : pygame.mixer.Sound
+        the sound of the shoot
+
+    Methods
+    -------
+    update(deltaTime, mouse_pos, screen_size):
+        Updates the player.
+    Shoot(event, objects):
+        Shoots a bullet.
+    """
     def __init__(self, path, sprite, bullet_sprite, position, size, vida, screen_size):
+        """
+        Constructs all the necessary attributes for the player object.
+
+        Parameters
+        ----------
+            path : str
+                the path to the assets folder
+            sprite : pygame.Surface
+                the sprite of the player
+            bullet_sprite : pygame.Surface
+                the sprite of the bullet
+            position : tuple[int, int]
+                the position of the player
+            size : tuple[int, int]
+                the size of the player
+            vida : int
+                the life of the player
+            screen_size : tuple[int, int]
+                the size of the screen
+        """
         super().__init__(path, sprite, bullet_sprite, position, size, vida, screen_size)
         self.velocityX = 0
         self.velocityY = 0
@@ -40,6 +160,18 @@ class Player(GameEntity):
         self.shootSound.set_volume(0.3)
 
     def update(self, deltaTime,  mouse_pos, screen_size):
+        """
+        Updates the player.
+
+        Parameters
+        ----------
+            deltaTime : float
+                the time since the last frame
+            mouse_pos : tuple[int, int]
+                the position of the mouse
+            screen_size : tuple[int, int]
+                the size of the screen
+        """
         self.velocityX = 0
         self.velocityY = 0
         self.mouse_pos = mouse_pos
@@ -96,13 +228,86 @@ class Player(GameEntity):
     #Funcion para disparar la o las balas del player
     #Se ejecuta exclusivamente en el for de los eventos en el loop principal
     def Shoot(self, event, objects):
+        """
+        Shoots a bullet.
+
+        Parameters
+        ----------
+            event : pygame.event.Event
+                the event
+            objects : pygame.sprite.Group
+                the group of objects
+        """
         if event.type == MOUSEBUTTONDOWN and event.button == 1 and not self.isDead:
             self.shootSound.play()
             objects.add(Bullet(self.rect.center, self.angle, self.bullet_sprite, tamanoDinamico(self.screen_size[0], 1.5625), self.target, (tamanoDinamico(self.screen_size[0], 1.5625), tamanoDinamico(self.screen_size[0], 1.5625))))
 
 #Esta clase es para todos los tipos de enemigos del juego
 class Enemies(GameEntity):
+    """
+    A class to represent the enemies.
+
+    ...
+
+    Attributes
+    ----------
+    enemy_id : str
+        the id of the enemy
+    bullet_interval : int
+        the interval of the bullets
+    bullet_vertices : int
+        the vertices of the bullets
+    suma_del_angulo : int
+        the sum of the angle
+    angulo_actual : int
+        the current angle
+    ultimo_disparo : float
+        the time of the last shot
+    shoot_queue : Queue
+        the queue of the shoots
+    target : str
+        the target of the bullets
+    canShoot : int
+        whether the enemy can shoot or not
+    dedSound : pygame.mixer.Sound
+        the sound of the death
+    final_position : tuple[int, int]
+        the final position of the enemy
+
+    Methods
+    -------
+    loadEnemy():
+        Loads the enemy.
+    update(objects, deltaTime, screen_size):
+        Updates the enemy.
+    shoot(objects):
+        Shoots a bullet.
+    """
     def __init__(self, path, sprite, bullet_sprite, position, size, vida, screen_size, enemy_id, final_position):
+        """
+        Constructs all the necessary attributes for the enemies object.
+
+        Parameters
+        ----------
+            path : str
+                the path to the assets folder
+            sprite : pygame.Surface
+                the sprite of the enemy
+            bullet_sprite : pygame.Surface
+                the sprite of the bullet
+            position : tuple[int, int]
+                the position of the enemy
+            size : tuple[int, int]
+                the size of the enemy
+            vida : int
+                the life of the enemy
+            screen_size : tuple[int, int]
+                the size of the screen
+            enemy_id : str
+                the id of the enemy
+            final_position : tuple[int, int]
+                the final position of the enemy
+        """
         super().__init__(path, sprite, bullet_sprite, position, size, vida, screen_size)
         self.enemy_id = enemy_id
         #Bullet interval sirve para calcular el intervalo de disparo de las balas
@@ -128,6 +333,9 @@ class Enemies(GameEntity):
         self.loadEnemy()
 
     def loadEnemy(self):
+        """
+        Loads the enemy.
+        """
         if self.enemy_id == "enemigo_patron_circular":
             #Se configuran las opciones iniciales del enemigo
             self.image = image.load(self.path + "Images/circular_enemy.png").convert_alpha()
@@ -189,6 +397,18 @@ class Enemies(GameEntity):
             self.suma_del_angulo = 360/self.bullet_vertices
 
     def update(self, objects, deltaTime, screen_size):
+        """
+        Updates the enemy.
+
+        Parameters
+        ----------
+            objects : pygame.sprite.Group
+                the group of objects
+            deltaTime : float
+                the time since the last frame
+            screen_size : tuple[int, int]
+                the size of the screen
+        """
         self.screen_size = screen_size
         
         def ease_out(t):
@@ -215,6 +435,14 @@ class Enemies(GameEntity):
 
     #Esta funcion son los tipos de disparo de los enemigos
     def shoot(self, objects):
+        """
+        Shoots a bullet.
+
+        Parameters
+        ----------
+            objects : pygame.sprite.Group
+                the group of objects
+        """
         if self.enemy_id == "enemigo_patron_circular":
             for _ in range(self.bullet_vertices):
                 self.shoot_queue.put(Bullet(self.rect.center, self.angulo_actual, self.bullet_sprite[1], tamanoDinamico(self.screen_size[0], 0.390625), self.target, (tamanoDinamico(self.screen_size[0], 1.5625), tamanoDinamico(self.screen_size[0], 1.5625))))
