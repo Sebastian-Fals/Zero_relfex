@@ -88,6 +88,12 @@ TEXTO_BOTON_HOVER = (154, 237, 237)
 #----------------------------
 
 def mainMenu():
+    """
+    The main menu of the game.
+
+    This function initializes and runs the main menu loop, handling user input for starting the game,
+    accessing the options menu, and quitting the game.
+    """
     #Se llama a la variable resolucion_elegida
     global resolucion_elegida
     anchopantalla, altopantalla = pantalla.get_size()
@@ -189,6 +195,16 @@ def mainMenu():
         clock.tick(limite_fps)
 
 def Options(estrellas, resoluciones):
+    """
+    The options menu of the game.
+
+    This function initializes and runs the options menu loop, allowing the user to change the resolution,
+    toggle fullscreen, and adjust the FPS limit.
+
+    Args:
+        estrellas (Estrellas): The starfield background.
+        resoluciones (list[tuple[int, int]]): A list of available screen resolutions.
+    """
     global pantalla
     anchopantalla, altopantalla = pantalla.get_size()
     global resolucion_index
@@ -534,6 +550,15 @@ def Options(estrellas, resoluciones):
         clock.tick(limite_fps)
 
 def Game(estrellas):
+    """
+    The main game loop.
+
+    This function initializes and runs the main game loop, handling player input,
+    enemy spawning, and all other game logic.
+
+    Args:
+        estrellas (Estrellas): The starfield background.
+    """
     global resolucion_elegida
     global limite_fps
     anchopantalla, altopantalla = pantalla.get_size()
