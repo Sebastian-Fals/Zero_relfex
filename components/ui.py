@@ -1,7 +1,7 @@
 from random import *
 from pygame import *
 import time as tm
-from Assets.Python.funciones import tamanoDinamico
+from .utils import tamanoDinamico
 
 class Estrellas():
     """
@@ -227,6 +227,8 @@ class Boton():
             self.colorFondo = colorFondo
             self.colorFondoEncima = colorFondoEncima
             self.radio = radio
+            
+        self.text_offset_y = tamanoDinamico(self.tamano[1], 15)
 
         self.hover = False
         
@@ -235,21 +237,36 @@ class Boton():
         """
         Updates the button.
         """
-        self.boton.fill((0, 0, 0))
+        self.boton.fill((0, 0, 0, 0)) # Clean with transparency
+        
+        border_color = (0, 243, 255) # Neon Cyan default
+        
         if not self.hover:
-            # Dibujar el fondo si tiene fondo
+            # Normal State
             if self.tieneFondo:
-                # Dibuja el fondo en el boton
-                draw.rect(self.boton, self.colorFondo, ((0,0), self.boton.get_size()), border_radius=self.radio)
-            # Dibuja el texto
-            self.boton.blit(self.textoRenderizado, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + tamanoDinamico(self.boton.get_size()[1], 15))))
+                # Ghost style: Transparent bg, colored border? Or Solid?
+                # User asked for "better". Let's do:
+                # Background: self.colorFondo
+                # Border: border_color (thin)
+                draw.rect(self.boton, self.colorFondo, ((0,0), self.boton.get_size()), border_radius=int(self.radio))
+                draw.rect(self.boton, border_color, ((0,0), self.boton.get_size()), 2, border_radius=int(self.radio))
+                
+            # Text
+            self.boton.blit(self.textoRenderizado, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + self.text_offset_y)))
             self.yaSono = False
         else:
-            # Dibuja el texto
-            self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + tamanoDinamico(self.boton.get_size()[1], 15))))
+            # Hover State
+            if self.tieneFondo:
+                # Hover: Fill with border color (glowy) or brighter background?
+                # Let's use colorFondoEncima as fill, and make it glow.
+                draw.rect(self.boton, self.colorFondoEncima, ((0,0), self.boton.get_size()), border_radius=int(self.radio))
+                # Thicker border
+                draw.rect(self.boton, (255, 255, 255), ((0,0), self.boton.get_size()), 3, border_radius=int(self.radio))
+                
+            # Text (Encima)
+            self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + self.text_offset_y)))
 
         self.onHover()
-        # Dibuja el boton en la pantalla
         self.superficie.blit(self.boton, (self.rect.x, self.rect.y))
 
     def refrescar(self, tamano, posicion):
@@ -265,6 +282,7 @@ class Boton():
         """
         self.tamano = tamano
         self.posicion = posicion
+        self.text_offset_y = tamanoDinamico(self.tamano[1], 15)
 
     def onHover(self):
         """
@@ -279,10 +297,10 @@ class Boton():
                 # Dibuja el fondo en el boton
                 draw.rect(self.boton, self.colorFondoEncima, ((0,0), self.boton.get_size()), border_radius=self.radio)
                 # Dibuja el texto
-                self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + tamanoDinamico(self.boton.get_size()[1], 15))))
+                self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + self.text_offset_y)))
             else:
                 # Dibuja el texto
-                self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + tamanoDinamico(self.boton.get_size()[1], 15))))
+                self.boton.blit(self.textoRenderizadoEncima, self.textoRenderizado.get_rect(center= (self.boton.get_rect().centerx, self.boton.get_rect().centery + self.text_offset_y)))
             self.hover = True
             if not self.yaSono:
                 self.sonidoEncima.play()
@@ -309,4 +327,36 @@ class Boton():
             musica.pause()
         self.sonidoClick.play()
         tm.sleep(tiempoEspera)
-        funcion(*args)        
+        funcion(*args)
+
+class Panel():
+    def __init__(self, superficie: Surface, tamano: tuple[float], posicion: tuple[int, int], colorFondo: tuple[int], radio: float, borde_color: tuple[int] = None, borde_ancho: int = 0):
+        self.superficie = superficie
+        self.tamano = tamano
+        self.posicion = posicion
+        self.rect = Rect((0, 0), self.tamano)
+        self.rect.center = self.posicion
+        self.colorFondo = colorFondo
+        self.radio = radio
+        self.borde_color = borde_color
+        self.borde_ancho = borde_ancho
+        
+        self.surface = Surface(self.tamano, SRCALPHA)
+        
+    def draw(self):
+        self.surface.fill((0,0,0,0))
+        # Draw background
+        draw.rect(self.surface, self.colorFondo, ((0,0), self.tamano), border_radius=int(self.radio))
+        
+        # Draw border if exists
+        if self.borde_color and self.borde_ancho > 0:
+            draw.rect(self.surface, self.borde_color, ((0,0), self.tamano), self.borde_ancho, border_radius=int(self.radio))
+            
+        self.superficie.blit(self.surface, self.rect)
+
+# Update Boton to support borders/modern style better
+# We will inject a 'draw_modern' logic or just update update()
+# Current update is specific. Let's make it more flexible.
+# For this refactor, I'll stick to the existing class structure 
+# but improve the rendering inside 'update'.
+        

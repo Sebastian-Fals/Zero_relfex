@@ -3,8 +3,8 @@ from threading import Thread
 from pygame import *
 from math import *
 from queue import *
-from Assets.Python.BulletClass import Bullet
-from Assets.Python.funciones import tamanoDinamico
+from .bullet import Bullet
+from .utils import tamanoDinamico
 
 class GameEntity(sprite.Sprite):
     """

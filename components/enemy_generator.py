@@ -2,8 +2,8 @@ import time as tm
 import threading as th
 from pygame import *
 from random import *
-from Assets.Python.GameEntities import Enemies
-from Assets.Python.funciones import tamanoDinamico
+from .entities import Enemies
+from .utils import tamanoDinamico
 
 class SpawnPoint():
     """
